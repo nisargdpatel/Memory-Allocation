@@ -70,8 +70,13 @@ class HeapElement():
 
 
 def main():
+    outFile = open('output.txt', 'w')
+
     jo = Job("small")
-    print(jo.running_time, jo.code_size, jo.stack_size)
+    print("Run Time: ", jo.running_time)
+    print("Code Size: ", jo.code_size)
+    print("Stack Size: ", jo.stack_size)
+    print("Heap Elements:")
     for element in jo.heap_elements:
         print(element.memory)
 
