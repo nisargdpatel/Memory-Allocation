@@ -74,11 +74,18 @@ def main():
 
     jo = Job("small")
     print("Run Time: ", jo.running_time)
+    outFile.write("Run Time: " + str(jo.running_time) + "\n")
     print("Code Size: ", jo.code_size)
+    outFile.write("Code Size: " + str(jo.code_size) + "\n")
     print("Stack Size: ", jo.stack_size)
+    outFile.write("Stack Size: " + str(jo.stack_size) + "\n\n")
     print("Heap Elements:")
+    outFile.write("Heap Elements:\n")
     for element in jo.heap_elements:
         print(element.memory)
+        outFile.write(str(element.memory) + "\n")
+
+    outFile.close()
 
     # memory_size = input("Please enter the memory unit size: ")
     # memory_units = input("Please enter the number of memory units available: ")
