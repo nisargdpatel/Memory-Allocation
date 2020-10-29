@@ -69,23 +69,62 @@ class HeapElement():
         return 35 + ( random.randint(0, 15) * random.choice([-1, 1]) )
 
 
+
+
+
 def main():
-    outFile = open('output.txt', 'w')
 
-    jo = Job("small")
-    print("Run Time: ", jo.running_time)
-    outFile.write("Run Time: " + str(jo.running_time) + "\n")
-    print("Code Size: ", jo.code_size)
-    outFile.write("Code Size: " + str(jo.code_size) + "\n")
-    print("Stack Size: ", jo.stack_size)
-    outFile.write("Stack Size: " + str(jo.stack_size) + "\n\n")
-    print("Heap Elements:")
-    outFile.write("Heap Elements:\n")
-    for element in jo.heap_elements:
-        print(element.memory)
-        outFile.write(str(element.memory) + "\n")
+    
+    
 
-    outFile.close()
+    def printHeap(tempJo, tempOutFile):
+        counter = 1
+        print("Run Time: ", tempJo.running_time)
+        tempOutFile.write("\nRun Time: " + str(tempJo.running_time) + "\n")
+        print("Code Size: ", tempJo.code_size)
+        tempOutFile.write("Code Size: " + str(tempJo.code_size) + "\n")
+        print("Stack Size: ", tempJo.stack_size)
+        tempOutFile.write("Stack Size: " + str(tempJo.stack_size) + "\n")
+
+        if (tempJo.size.lower() == 'small'):
+            multiplier = 50
+        elif (tempJo.size.lower() == 'medium'):
+            multiplier = 100
+        elif (tempJo.size.lower() == 'large'):
+            multiplier = 250
+
+        print("Heap Elements: ", tempJo.running_time, " * ", multiplier, " = ", tempJo.running_time*multiplier, " heap elements")
+        tempOutFile.write("Heap Elements: " + str(tempJo.running_time) + " * " + str(multiplier) + " = " + str(tempJo.running_time*multiplier) + " heap elements\n")
+        print(multiplier, " heap elements arrive each time unit\n")
+        tempOutFile.write(str(multiplier) + " heap elements arrive each time unit\n")
+
+        for element in tempJo.heap_elements:
+            
+            if(element.memory < 20 or element.memory > 50):
+                print("Heap element ", counter, ": ", element.memory, " memory\t->\tNot in the range 35+/-15")
+                tempOutFile.write("Heap element " + str(counter) + ": " + str(element.memory) + " memory\t->\tNot in the range 35+/-15\n")
+            else:
+                print("Heap element ", counter, ": ", element.memory, " memory")
+                tempOutFile.write("Heap element " + str(counter) + ": " + str(element.memory) + " memory\n")
+            counter = counter+1
+
+        
+
+
+    jobSmall = Job("small")
+    outFileSmall = open('small_jobs_output.txt', 'w')
+    printHeap(jobSmall, outFileSmall)
+    outFileSmall.close()
+
+    jobMedium = Job("medium")
+    outFileMedium = open('medium_jobs_output.txt', 'w')
+    printHeap(jobMedium, outFileMedium)
+    outFileMedium.close()
+
+    jobLarge = Job("large")
+    outFileLarge = open('large_jobs_output.txt', 'w')
+    printHeap(jobLarge, outFileLarge)
+    outFileLarge.close()
 
     # memory_size = input("Please enter the memory unit size: ")
     # memory_units = input("Please enter the number of memory units available: ")
@@ -93,7 +132,7 @@ def main():
     # determining next arrival time of a job
     # arrival_time = 3 + ( random.randint(0, 2) * random.choice([-1, 1]) )
 
-
+    
 
 
 if __name__ == "__main__":
