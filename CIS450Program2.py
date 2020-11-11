@@ -105,6 +105,10 @@ def printHeap(tempJo, tempOutFile):
         counter = counter+1
 
 def runSimulation(testName, memoryUnitSize, memoryNumber, outputFile, logFile, lostObjects, smallJobs, mediumJobs, largeJobs):
+    total_memory = 0
+    total_free_memory = 0
+    num_lost_objects = 0
+    total_memory_lost_objects = 0
     jobPercents = []
     jobPercents.extend('small' for x in range(smallJobs))
     jobPercents.extend('medium' for x in range(mediumJobs))
@@ -122,7 +126,7 @@ def runSimulation(testName, memoryUnitSize, memoryNumber, outputFile, logFile, l
     jobTime = 0
 
     for currentTime in range(1,12001):
-        print(currentTime)
+        print(currentTime, ": ")
         # Add a job and generate the next arrival time
         if currentTime == nextJob:
             # add job to job queue
@@ -137,10 +141,12 @@ def runSimulation(testName, memoryUnitSize, memoryNumber, outputFile, logFile, l
 
         # Add jobs to the memory unit if it is available
         if not memory and jobs:
+            total_free_memory += 1
             # Add job to the memory units if it can fit the code and stack size
             if (memoryUnitSize*memoryNumber) > (jobs[0].code_size + jobs[0].stack_size):
                 jobTypes[jobs[0].size] = jobTypes[jobs[0].size] + 1
                 memory.append(jobs.pop())
+                total_memory += 1
                 jobTime = memory[0].running_time
                 heapsPerUnit = math.ceil(len(memory[0].heap_elements) / jobTime)
                 heapCounter = 0
@@ -156,6 +162,7 @@ def runSimulation(testName, memoryUnitSize, memoryNumber, outputFile, logFile, l
 
         # If there is a job in memory, begin allocation/deallocation
         if memory:
+            total_memory += 1
             # Heap elements are allocated evenly across run time
             for number in range(heapsPerUnit):
                 # Attempt to allocate each heap element via the 4 algorithms
@@ -170,30 +177,79 @@ def runSimulation(testName, memoryUnitSize, memoryNumber, outputFile, logFile, l
             # reduce the lifeTime as it has consumed 1 time unit
             for element in memory[0].heap_elements:
                 element.lifeTime -= 1
+                total_memory += 1
                 # if lifetime has completed, free up allocated memory
                 if element.lifeTime == 0:
                     # if 100th job type skip memory freeing to simulate lost objects
                     if lostObjects and (jobTypes[memory[0].size] % 100) == 0:
+                        num_lost_objects += 1
+                        total_memory_lost_objects += element.memory
                         continue
                     else:
-                        alg.freeFF(element.ffLocation, memoryUnitSize)
-                        alg.freeNF(element.nfLocation, memoryUnitSize)
-                        alg.freeBF(element.bfLocation, memoryUnitSize)
-                        alg.freeWF(element.wfLocation, memoryUnitSize)
+                        freeFF(element.ffLocation, memoryUnitSize)
+                        freeNF(element.nfLocation, memoryUnitSize)
+                        freeBF(element.bfLocation, memoryUnitSize)
+                        freeWF(element.wfLocation, memoryUnitSize)
+                        total_free_memory += 1
 
         # Counter for the current running job
         jobTime -= 1
 
         if ((currentTime % 20) == 0) and currentTime > 2000:
             # PRINT METRICS FOR EVERY 20 TIME UNITS
+            print("Steady state:")
+            print("Total amount of memory defined: ", memoryUnitSize)
+            print("Total amount of memory allocated: ", total_memory)
+            print("% of Memory in use: ", total_memory / memoryUnitSize)
+            print("Required amount of memory: ", (jobs[0].code_size + jobs[0].stack_size) / memoryNumber)
+            # print("% Internal fragmentation: ", (total_memory - ((jobs[0].code_size + jobs[0].stack_size) / memoryNumber))/total_memory)
+            print("% Memory free: ", total_free_memory / memoryUnitSize)
+            print("External Fragmentation (number of areas with free space): ")
+            print("Largest Free Space: ")
+            print("Smallest Free Space: ")
+            print("Number of Heap allocation: ")
+            print("Number of Lost objects: ", num_lost_objects)
+            if (total_memory_lost_objects != 0):
+               print("Total Memory Size of lost objects: ", total_memory_lost_objects) 
+               print("% Memory of lost objects: ", total_memory / total_memory_lost_objects)
             pass
 
 
         if currentTime == 2000:
             # PRINT PREFIL STEADY STATE METRICS
+            print("Steady state:")
+            print("Total amount of memory defined: ", memoryUnitSize)
+            print("Total amount of memory allocated: ", total_memory)
+            print("% of Memory in use: ", total_memory / memoryUnitSize)
+            print("Required amount of memory: ", (jobs[0].code_size + jobs[0].stack_size) / memoryNumber)
+            # print("% Internal fragmentation: ", (total_memory - ((jobs[0].code_size + jobs[0].stack_size) / memoryNumber))/total_memory)
+            print("% Memory free: ", total_free_memory / memoryUnitSize)
+            print("External Fragmentation (number of areas with free space): ")
+            print("Largest Free Space: ")
+            print("Smallest Free Space: ")
+            print("Number of Heap allocation: ")
+            print("Number of Lost objects: ", num_lost_objects)
+            if (total_memory_lost_objects != 0):
+               print("Total Memory Size of lost objects: ", total_memory_lost_objects) 
+               print("% Memory of lost objects: ", total_memory / total_memory_lost_objects)
+            
             pass
 
     #UPDATE SUMMARY FILE once the full simulation is complete
+   
+    print("\t\t\tFirst Fit\tNext Fit\tBest Fit\tWorst Fit")
+    print(testName, "\t", alg.ffHeap, "\t", alg.nfHeap, "\t", alg.bfHeap, "\t", alg.wfHeap)
+    # print("# of small jobs:")
+    # print("# of medium jobs:")
+    # print("# of large jobs:")
+    # print("total amount of memory defined:")
+    # print("amount of memory allocated:")
+    # print("% memory in use:")
+    # print("required amount of memory:")
+    # print("% internal fragmentation:")
+    # print("% memory free:")
+    # print("external fragmentation:")
+    # print("")
 
 
 class Algorithms:
@@ -275,31 +331,36 @@ def main():
     printHeap(jobLarge, outFileLarge)
     outFileLarge.close()"""
 
-    test_name = input("Enter test name: ")
-    print(test_name)
-    memory_unit_size = input("Enter memory unit size: ")
-    print(memory_unit_size)
-    memory_number = input("Enter memory number: ")
-    print(memory_number)
-    output_file_name = input("Enter output file name")
-    print(output_file_name)
-    log_file_name = input("Enter log file name: ")
-    print(log_file_name)
-    want_lost_objects = input("Enter 1 if you want lost objects and 2 if you don't: ")
-    print(want_lost_objects)
-    if (want_lost_objects == "1"):
-        lost_objects = True
-    else:
-        lost_objects = False
-    print(lost_objects)
-    small_jobs = input("Enter number of small jobs: ")
-    medium_jobs = input("Enter number of medium jobs: ")
-    large_jobs = input("Enter number of large jobs: ")
+    # test_name = input("Enter test name: ")
+    # print(test_name)
+    # memory_unit_size = input("Enter memory unit size: ")
+    # print(memory_unit_size)
+    # memory_number = input("Enter memory number: ")
+    # print(memory_number)
+    # output_file_name = input("Enter output file name")
+    # print(output_file_name)
+    # log_file_name = input("Enter log file name: ")
+    # print(log_file_name)
+    # want_lost_objects = input("Enter 1 if you want lost objects and 2 if you don't: ")
+    # print(want_lost_objects)
+    # if (want_lost_objects == "1"):
+    #     lost_objects = True
+    # else:
+    #     lost_objects = False
+    # print(lost_objects)
+    # small_jobs = input("Enter number of small jobs: ")
+    # medium_jobs = input("Enter number of medium jobs: ")
+    # large_jobs = input("Enter number of large jobs: ")
 
 
-    runSimulation(str(test_name), int(memory_unit_size), int(memory_number), str(output_file_name), str(log_file_name), bool(lost_objects), int(small_jobs), int(medium_jobs), int(large_jobs))
+    # runSimulation(str(test_name), int(memory_unit_size), int(memory_number), str(output_file_name), str(log_file_name), bool(lost_objects), int(small_jobs), int(medium_jobs), int(large_jobs))
 
-    # runSimulation(testName='TestRun', memoryUnitSize=8, memoryNumber=15, outputFile='', logFile='', lostObjects=False, smallJobs=50, mediumJobs=25,largeJobs=25)
+    print("\t\t\tFirst Fit\tNext Fit\tBest Fit\tWorst Fit")
+    print("1\t", end='')
+    runSimulation(testName='TestRun', memoryUnitSize=8, memoryNumber=15, outputFile='', logFile='', lostObjects=False, smallJobs=50, mediumJobs=25,largeJobs=25)
+
+    
+
 
     # memory_size = input("Please enter the memory unit size: ")
     # memory_units = input("Please enter the number of memory units available: ")
