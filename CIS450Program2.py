@@ -176,10 +176,10 @@ def runSimulation(testName, memoryUnitSize, memoryNumber, outputFile, logFile, l
                     if lostObjects and (jobTypes[memory[0].size] % 100) == 0:
                         continue
                     else:
-                        freeFF(element.ffLocation, memoryUnitSize)
-                        freeNF(element.nfLocation, memoryUnitSize)
-                        freeBF(element.bfLocation, memoryUnitSize)
-                        freeWF(element.wfLocation, memoryUnitSize)
+                        alg.freeFF(element.ffLocation, memoryUnitSize)
+                        alg.freeNF(element.nfLocation, memoryUnitSize)
+                        alg.freeBF(element.bfLocation, memoryUnitSize)
+                        alg.freeWF(element.wfLocation, memoryUnitSize)
 
         # Counter for the current running job
         jobTime -= 1
@@ -275,9 +275,31 @@ def main():
     printHeap(jobLarge, outFileLarge)
     outFileLarge.close()"""
 
+    test_name = input("Enter test name: ")
+    print(test_name)
+    memory_unit_size = input("Enter memory unit size: ")
+    print(memory_unit_size)
+    memory_number = input("Enter memory number: ")
+    print(memory_number)
+    output_file_name = input("Enter output file name")
+    print(output_file_name)
+    log_file_name = input("Enter log file name: ")
+    print(log_file_name)
+    want_lost_objects = input("Enter 1 if you want lost objects and 2 if you don't: ")
+    print(want_lost_objects)
+    if (want_lost_objects == "1"):
+        lost_objects = True
+    else:
+        lost_objects = False
+    print(lost_objects)
+    small_jobs = input("Enter number of small jobs: ")
+    medium_jobs = input("Enter number of medium jobs: ")
+    large_jobs = input("Enter number of large jobs: ")
 
-    runSimulation(testName='TestRun', memoryUnitSize=8, memoryNumber=15, outputFile='', logFile='', lostObjects=False, smallJobs=50, mediumJobs=25,largeJobs=25)
 
+    runSimulation(str(test_name), int(memory_unit_size), int(memory_number), str(output_file_name), str(log_file_name), bool(lost_objects), int(small_jobs), int(medium_jobs), int(large_jobs))
+
+    # runSimulation(testName='TestRun', memoryUnitSize=8, memoryNumber=15, outputFile='', logFile='', lostObjects=False, smallJobs=50, mediumJobs=25,largeJobs=25)
 
     # memory_size = input("Please enter the memory unit size: ")
     # memory_units = input("Please enter the number of memory units available: ")
