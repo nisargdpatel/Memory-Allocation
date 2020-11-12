@@ -104,7 +104,97 @@ def printHeap(tempJo, tempOutFile):
             tempOutFile.write("Heap element " + str(counter) + ": " + str(element.memory) + " memory\n")
         counter = counter+1
 
+class MemoryMetrics():
+    # Constructor with required fields
+    def __init__(self, test):
+        self.test = test
+        self.totalMemory = 0
+        self.memoryAllocated = 0
+        self.percentMemoryInUse = 0
+        self.requiredMemory = 0
+        self.internalFragmentation = 0
+        self.percentFreeMemory = 0
+        self.externalFragmentation = 0
+        self.largestSpace = 0
+        self.smallestSpace = 0
+        self.numberHeapAllocation = 0
+        self.numberLostObj = 0
+        self.totalMemorySizeLostObj = 0
+        self.percentMemoryLostObj = 0
+        self.codeMemory = 0
+        self.stackMemory = 0
+        self.heapEMemory = 0
+        self.stackCodeMemory = 0
+
+    # Generates memory size of each heap element
+    def printMetrics(self, outFile):
+        # PRINT PREFIL STEADY STATE METRICS
+        print(self.test)
+        outFile.write(self.test + "\n")
+        print("Total amount of memory defined: ", self.totalMemory)
+        outFile.write("Total amount of memory defined: " + str(self.totalMemory) + "\n")
+        print("Total amount of memory allocated: ", self.memoryAllocated)
+        outFile.write("Total amount of memory allocated: " + str(self.memoryAllocated) + "\n")
+        print("% of Memory in use: ", self.percentMemoryInUse)
+        outFile.write("% of Memory in use: " + str(self.percentMemoryInUse) + "\n")
+        print("Required amount of memory: ", self.requiredMemory)
+        outFile.write("Required amount of memory: " + str(self.requiredMemory) + "\n")
+        print("% Internal fragmentation: ", self.internalFragmentation)
+        outFile.write("% Internal fragmentation: " + str(self.internalFragmentation) + "\n")
+        print("% Memory free: ", self.percentFreeMemory)
+        outFile.write("% Memory free: " + str(self.percentFreeMemory) + "\n")
+        print("External Fragmentation (number of areas with free space): ", self.externalFragmentation)
+        outFile.write("External Fragmentation (number of areas with free space): " + str(self.externalFragmentation) + "\n")
+        print("Largest Free Space: ", self.largestSpace)
+        outFile.write("Largest Free Space: " + str(self.largestSpace) + "\n")
+        print("Smallest Free Space: ", self.smallestSpace)
+        outFile.write("Smallest Free Space: " + str(self.smallestSpace) + "\n")
+        print("Number of Heap allocation: ", self.numberHeapAllocation)
+        outFile.write("Number of Heap allocation: " + str(self.numberHeapAllocation) + "\n")
+        print("Number of Lost objects: ", self.numberLostObj)
+        outFile.write("Number of Lost objects: " + str(self.numberLostObj) + "\n")
+        print("Total Memory Size of lost objects: ", self.totalMemorySizeLostObj)
+        outFile.write("Total Memory Size of lost objects: " + str(self.totalMemorySizeLostObj) + "\n")
+        print("\n")
+        outFile.write("\n\n")
+
+    def resetMetrics(self):
+        self.memoryAllocated = 0
+        self.percentMemoryInUse = 0
+        self.requiredMemory = 0
+        self.internalFragmentation = 0
+        self.percentFreeMemory = 0
+        self.externalFragmentation = 0
+        self.largestSpace = 0
+        self.smallestSpace = 0
+        self.numberHeapAllocation = 0
+        self.numberLostObj = 0
+        self.totalMemorySizeLostObj = 0
+        self.percentMemoryLostObj = 0
+        self.codeMemory = 0
+        self.stackMemory = 0
+        self.heapEMemory = 0
+        self.stackCodeMemory = 0
+
+
+
 def runSimulation(testName, memoryUnitSize, memoryNumber, outputFile, logFile, lostObjects, smallJobs, mediumJobs, largeJobs):
+    
+    ff = open('ff.txt', 'w')
+    nf = open('nf.txt', 'w')
+    bf = open('bf.txt', 'w')
+    wf = open('wf.txt', 'w')
+    log = open(logFile, 'a')
+    outFile = open(outputFile, 'a')
+   
+
+    log.truncate(0)
+    # outFile.truncate(0)
+    num_lost_objects = 0
+    total_memory_lost_objects = 0
+    num_operations = 0
+    alloc_operations = 0
+    free_operations = 0
     jobPercents = []
     jobPercents.extend('small' for x in range(smallJobs))
     jobPercents.extend('medium' for x in range(mediumJobs))
@@ -119,10 +209,25 @@ def runSimulation(testName, memoryUnitSize, memoryNumber, outputFile, logFile, l
             }
 
     alg = Algorithms()
+    ffmem = MemoryMetrics('First Fit')
+    nfmem = MemoryMetrics('Next Fit')
+    bfmem = MemoryMetrics('Best Fit')
+    wfmem = MemoryMetrics('Worst Fit')
+
+    ffe = MemoryMetrics('First Fit')
+    nfe= MemoryMetrics('Next Fit')
+    bfe= MemoryMetrics('Best Fit')
+    wfe = MemoryMetrics('Worst Fit')
+
+    ffmem.totalMemory = (memoryUnitSize*memoryNumber)
+    nfmem.totalMemory = (memoryUnitSize*memoryNumber)
+    bfmem.totalMemory = (memoryUnitSize*memoryNumber)
+    wfmem.totalMemory = (memoryUnitSize*memoryNumber)
+
     jobTime = 0
 
     for currentTime in range(1,12001):
-        print(currentTime)
+        print(currentTime, ": ")
         # Add a job and generate the next arrival time
         if currentTime == nextJob:
             # add job to job queue
@@ -131,14 +236,14 @@ def runSimulation(testName, memoryUnitSize, memoryNumber, outputFile, logFile, l
             # determine next arrival time
             nextJob = currentTime + (3 + ( random.choice([1, 2]) * random.choice([-1, 1]) ))
 
-        # Clear out a job that has finished its run time
-        if jobTime == 0 and memory:
-            memory.pop()
-
         # Add jobs to the memory unit if it is available
         if not memory and jobs:
             # Add job to the memory units if it can fit the code and stack size
             if (memoryUnitSize*memoryNumber) > (jobs[0].code_size + jobs[0].stack_size):
+                for test in [ffmem, nfmem, bfmem, wfmem]:
+                    test.resetMetrics()
+                    test.totalMemory = (memoryUnitSize*memoryNumber)
+                    test.memoryAllocated = (jobs[0].code_size + jobs[0].stack_size)
                 jobTypes[jobs[0].size] = jobTypes[jobs[0].size] + 1
                 memory.append(jobs.pop())
                 jobTime = memory[0].running_time
@@ -160,12 +265,31 @@ def runSimulation(testName, memoryUnitSize, memoryNumber, outputFile, logFile, l
             for number in range(heapsPerUnit):
                 # Attempt to allocate each heap element via the 4 algorithms
                 heapElement = memory[0].heap_elements[heapCounter]
+                #print(heapElement.memory)
                 heapElement.ffLocation = alg.mallocFF(heapElement.memory)
                 heapElement.nfLocation = alg.mallocNF(heapElement.memory)
                 heapElement.bfLocation = alg.mallocBF(heapElement.memory)
                 heapElement.wfLocation = alg.mallocWF(heapElement.memory)
-                heapElement.lifeTime = random.randint(1, memory[0].jobTime)
-                heapCounter += 1
+                tests = []
+                if heapElement.ffLocation != '':
+                    tests.append(ffmem)
+                    log.write(str(currentTime) + ' First Fit Allocation' + str(heapElement.ffLocation) + '\n')
+                if heapElement.nfLocation != '':
+                    tests.append(nfmem)
+                    log.write(str(currentTime) + ' Next Fit Allocation' + str(heapElement.nfLocation) + '\n' )
+                if heapElement.bfLocation != '':
+                    tests.append(bfmem)
+                    log.write(str(currentTime) + ' Best Fit Allocation' + str(heapElement.bfLocation) + '\n')
+                if heapElement.wfLocation != '':
+                    tests.append(wfmem)
+                    log.write(str(currentTime) + ' Worst Fit Allocation' + str(heapElement.wfLocation) + '\n')
+                for test in tests:
+                    num_operations += 1
+                    alloc_operations += 1
+                    test.memoryAllocated += heapElement.memory
+                    test.numberHeapAllocation += 1
+                    heapElement.lifeTime = random.randint(1, memory[0].running_time)
+                    heapCounter += 1
 
             # reduce the lifeTime as it has consumed 1 time unit
             for element in memory[0].heap_elements:
@@ -174,26 +298,98 @@ def runSimulation(testName, memoryUnitSize, memoryNumber, outputFile, logFile, l
                 if element.lifeTime == 0:
                     # if 100th job type skip memory freeing to simulate lost objects
                     if lostObjects and (jobTypes[memory[0].size] % 100) == 0:
+                        num_lost_objects += 1
+                        total_memory_lost_objects += element.memory
                         continue
                     else:
-                        freeFF(element.ffLocation, memoryUnitSize)
-                        freeNF(element.nfLocation, memoryUnitSize)
-                        freeBF(element.bfLocation, memoryUnitSize)
-                        freeWF(element.wfLocation, memoryUnitSize)
+                        #print('deallocate')
+                        alg.freeFF(element.ffLocation, memoryUnitSize)
+                        alg.freeNF(element.nfLocation, memoryUnitSize)
+                        alg.freeBF(element.bfLocation, memoryUnitSize)
+                        alg.freeWF(element.wfLocation, memoryUnitSize)
+                        ffmem.memoryAllocated -= element.memory
+                        nfmem.memoryAllocated -= element.memory
+                        bfmem.memoryAllocated -= element.memory
+                        wfmem.memoryAllocated -= element.memory
+                        log.write(str(currentTime) + ' First Fit Deallocation' + str(element.ffLocation) + '\n')
+                        log.write(str(currentTime) + ' Next Fit Deallocation' + str(element.nfLocation) + '\n' )
+                        log.write(str(currentTime) + ' Best Fit Deallocation' + str(element.bfLocation) + '\n')
+                        log.write(str(currentTime) + ' Worst Fit Deallocation' + str(element.wfLocation) + '\n')
+                        num_operations += 4
+                        free_operations += 4
+
+
+        if currentTime == 2000 or (((currentTime % 20) == 0) and currentTime > 2000):
+            tests = [ffmem, nfmem, bfmem, wfmem]
+            heapKeys = {
+                    'First Fit': alg.ffHeap,
+                    'Next Fit': alg.nfHeap,
+                    'Best Fit': alg.bfHeap,
+                    'Worst Fit': alg.wfHeap,
+            }
+            for test in tests:
+                test.percentMemoryInUse = (test.memoryAllocated / test.totalMemory)*100
+                test.requiredMemory = jobs[0].code_size + jobs[0].stack_size
+                test.internalFragmentation = ((test.totalMemory - test.requiredMemory)/ test.memoryAllocated)*100 if  test.memoryAllocated > 0 else 0
+                test.percentFreeMemory = 100 - test.percentMemoryInUse
+                for unit in heapKeys[test.test]:
+                    if int(unit) == int(memoryUnitSize):
+                        test.externalFragmentation += 1
+                test.largestSpace = max(heapKeys[test.test]) if heapKeys[test.test] else 0
+                test.smallestSpace = min(heapKeys[test.test]) if heapKeys[test.test] else 0
+                test.numberLostObj = num_lost_objects
+                test.totalMemorySizeLostObj = total_memory_lost_objects
+                test.percentMemoryLostObj = (total_memory_lost_objects / (memoryUnitSize*memoryNumber)) if (num_lost_objects > 0) else 0
+                test.codeMemory = jobs[0].code_size
+                test.stackMemory = jobs[0].stack_size
+                test.heapEMemory = test.memoryAllocated - (jobs[0].code_size + jobs[0].stack_size)
+                test.stackCodeMemory = jobs[0].code_size + jobs[0].stack_size
+                test.printMetrics(outFile)
+                # outFile.write(str(test.test))
+
+            
+            print('\nEfficiency Metrics')
+            outFile.write("\nEfficiency Metrics\n")
+            print("Total Operations", num_operations)
+            outFile.write("Total Operations" + str(num_operations) + "\n")
+            print("Number of Allocations", alloc_operations )
+            outFile.write("Number of Allocations" + str(alloc_operations) + "\n")
+            print("Number of Allocation Operations", alg.a_ops )
+            outFile.write("Number of Allocation Operations" + str(alg.a_ops) + "\n")
+            print("Number of Free Requests", free_operations )
+            outFile.write("Number of Free Requests" + str(free_operations) + "\n")
+            print("Number of Free Operations", alg.f_ops )
+            outFile.write("Number of Free Operations" + str(alg.f_ops) + "\n")
+            print("Average of Allocations", alloc_operations/4 )
+            outFile.write("Average of Allocations" + str(alloc_operations/4) + "\n")
+            print("Number of Free Requests", free_operations/4 )
+            outFile.write("Number of Free Requests" + str(free_operations/4) + "\n")
+            print("Percent of Allocations", (alloc_operations/num_operations)*100 )
+            outFile.write("Percent of Allocations" + str((alloc_operations/num_operations)*100) + "\n")
+            print("Percent of Free Requests", (free_operations/num_operations)*100)
+            outFile.write("Percent of Free Requests" + str((free_operations/num_operations)*100) + "\n")
 
         # Counter for the current running job
         jobTime -= 1
 
-        if ((currentTime % 20) == 0) and currentTime > 2000:
-            # PRINT METRICS FOR EVERY 20 TIME UNITS
-            pass
+        # Clear out a job that has finished its run time
+        if jobTime == 0 and memory:
+            memory.pop(0)
 
-
-        if currentTime == 2000:
-            # PRINT PREFIL STEADY STATE METRICS
-            pass
-
+    outFile.close()
+    log.close()
+    percent_memory_free = alg.ffHeap.__len__() / memoryUnitSize
     #UPDATE SUMMARY FILE once the full simulation is complete
+    #ff.write(str(memoryUnitSize) + "\t" + str(total_memory) + "\t" + str(total_memory / memoryUnitSize) + "\t" + str((jobs[0].code_size + jobs[0].stack_size) / memoryNumber) + "\t" + str(percent_memory_free) + "\t" + str(num_lost_objects) + "\n")
+
+    percent_memory_free = alg.nfHeap.__len__() / memoryUnitSize
+    #nf.write(str(memoryUnitSize) + "\t" + str(total_memory) + "\t" + str(total_memory / memoryUnitSize) + "\t" + str((jobs[0].code_size + jobs[0].stack_size) / memoryNumber) + "\t" + str(percent_memory_free) + "\t" + str(num_lost_objects) + "\n")
+
+    percent_memory_free = alg.bfHeap.__len__() / memoryUnitSize
+    #bf.write(str(memoryUnitSize) + "\t" + str(total_memory) + "\t" + str(total_memory / memoryUnitSize) + "\t" + str((jobs[0].code_size + jobs[0].stack_size) / memoryNumber) + "\t" + str(percent_memory_free) + "\t" + str(num_lost_objects) + "\n")
+
+    percent_memory_free = alg.wfHeap.__len__() / memoryUnitSize
+    #wf.write(str(memoryUnitSize) + "\t" + str(total_memory) + "\t" + str(total_memory / memoryUnitSize) + "\t" + str((jobs[0].code_size + jobs[0].stack_size) / memoryNumber) + "\t" + str(percent_memory_free) + "\t" + str(num_lost_objects) + "\n")
 
 
 class Algorithms:
@@ -203,10 +399,13 @@ class Algorithms:
         self.nfPrevious = 0
         self.bfHeap = []
         self.wfHeap = []
+        self.a_ops = 0
+        self.f_ops = 0
 
     def mallocFF(self, size):
         r = ''
-        for index, x in enumerate(self.ffHeap):
+        for index, x in enumerate(self.ffHeap, 0):
+            self.a_ops += 1
             if x >= size:
                 self.ffHeap[index] -= size
                 r = index
@@ -219,7 +418,8 @@ class Algorithms:
         nfHeapE = self.nfHeap[0:self.nfPrevious]
         del self.nfHeap[0:self.nfPrevious]
         self.nfHeap.extend(nfHeapE)
-        for index, x in enumerate(cycle(self.nfHeap)):
+        for index, x in enumerate(self.nfHeap):
+            self.a_ops += 1
             if index >= len(self.nfHeap)-1:
                 index = 0
             if x >= size:
@@ -232,6 +432,7 @@ class Algorithms:
     def mallocBF(self, size):
         r = ''
         for x in sorted(self.bfHeap):
+            self.a_ops += 1
             if x >= size:
                 r = self.bfHeap.index(x)
                 self.bfHeap[self.bfHeap.index(x)] -= size
@@ -241,6 +442,7 @@ class Algorithms:
     def mallocWF(self, size):
         r = ''
         for x in sorted(self.wfHeap, reverse=True):
+            self.a_ops += 1
             if x >= size:
                 r = self.wfHeap.index(x)
                 self.wfHeap[self.wfHeap.index(x)] -= size
@@ -248,18 +450,29 @@ class Algorithms:
         return r
 
     def freeFF(self, location, memoryUnitSize):
-        ffHeap[location] = memoryUnitSize
+        if(location != ''):
+            self.f_ops += 1
+            self.ffHeap[int(location)] = memoryUnitSize
 
     def freeNF(self, location, memoryUnitSize):
-        nfHeap[location] = memoryUnitSize
+        if(location != ''):
+            self.f_ops += 1
+            self.nfHeap[int(location)] = memoryUnitSize
 
     def freeBF(self, location, memoryUnitSize):
-        bfHeap[location] = memoryUnitSize
+        if(location != ''):
+            self.f_ops += 1
+            self.bfHeap[int(location)] = memoryUnitSize
 
     def freeWF(self, location, memoryUnitSize):
-        wfHeap[location] = memoryUnitSize
+        if(location != ''):
+            self.f_ops += 1
+            self.wfHeap[int(location)] = memoryUnitSize
+
 
 def main():
+
+
     """jobSmall = Job("small")
     outFileSmall = open('small_jobs_output.txt', 'w')
     printHeap(jobSmall, outFileSmall)
@@ -275,12 +488,40 @@ def main():
     printHeap(jobLarge, outFileLarge)
     outFileLarge.close()"""
 
+    userInput = 1
+    while (userInput == 1):
+        test_name = input("Enter test name: ")
+        print(test_name)
+        memory_unit_size = input("Enter memory unit size: ")
+        print(memory_unit_size)
+        memory_number = input("Enter memory number: ")
+        print(memory_number)
+        output_file_name = input("Enter output file name")
+        print(output_file_name)
+        log_file_name = input("Enter log file name: ")
+        print(log_file_name)
+        want_lost_objects = input("Enter 1 if you want lost objects and 2 if you don't: ")
+        print(want_lost_objects)
+        if (want_lost_objects == "1"):
+            lost_objects = True
+        else:
+            lost_objects = False
+        print(lost_objects)
+        small_jobs = input("Enter number of small jobs: ")
+        medium_jobs = input("Enter number of medium jobs: ")
+        large_jobs = input("Enter number of large jobs: ")
+        runSimulation(str(test_name), int(memory_unit_size), int(memory_number), str(output_file_name), str(log_file_name), bool(lost_objects), int(small_jobs), int(medium_jobs), int(large_jobs))
+        userInput = input("Press 1 to continue or 2 to quit program: ")
 
-    runSimulation(testName='TestRun', memoryUnitSize=8, memoryNumber=15, outputFile='', logFile='', lostObjects=False, smallJobs=50, mediumJobs=25,largeJobs=25)
+
+    
 
 
-    # memory_size = input("Please enter the memory unit size: ")
-    # memory_units = input("Please enter the number of memory units available: ")
+    # runSimulation(testName='TestRun1', memoryUnitSize=64, memoryNumber=12, outputFile='outputFile1.txt', logFile='summaryLog1.txt', lostObjects=False, smallJobs=50, mediumJobs=25,largeJobs=25)
+    # runSimulation(testName='TestRun2', memoryUnitSize=64, memoryNumber=12, outputFile='outputFile2.txt', logFile='summaryLog2.txt', lostObjects=False, smallJobs=50, mediumJobs=25,largeJobs=25)
+    # runSimulation(testName='TestRun3', memoryUnitSize=64, memoryNumber=12, outputFile='outputFile3.txt', logFile='summaryLog3.txt', lostObjects=False, smallJobs=50, mediumJobs=25,largeJobs=25)
+    # runSimulation(testName='TestRun4', memoryUnitSize=64, memoryNumber=12, outputFile='outputFile4.txt', logFile='summaryLog4.txt', lostObjects=True, smallJobs=10, mediumJobs=30,largeJobs=30)
+   
 
 
 
