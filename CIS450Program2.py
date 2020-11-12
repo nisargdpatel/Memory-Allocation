@@ -127,22 +127,36 @@ class MemoryMetrics():
         self.stackCodeMemory = 0
 
     # Generates memory size of each heap element
-    def printMetrics(self):
+    def printMetrics(self, outFile):
         # PRINT PREFIL STEADY STATE METRICS
         print(self.test)
+        outFile.write(self.test + "\n")
         print("Total amount of memory defined: ", self.totalMemory)
+        outFile.write("Total amount of memory defined: " + str(self.totalMemory) + "\n")
         print("Total amount of memory allocated: ", self.memoryAllocated)
+        outFile.write("Total amount of memory allocated: " + str(self.memoryAllocated) + "\n")
         print("% of Memory in use: ", self.percentMemoryInUse)
+        outFile.write("% of Memory in use: " + str(self.percentMemoryInUse) + "\n")
         print("Required amount of memory: ", self.requiredMemory)
+        outFile.write("Required amount of memory: " + str(self.requiredMemory) + "\n")
         print("% Internal fragmentation: ", self.internalFragmentation)
-        print("% Memory free: ",self.percentFreeMemory)
+        outFile.write("% Internal fragmentation: " + str(self.internalFragmentation) + "\n")
+        print("% Memory free: ", self.percentFreeMemory)
+        outFile.write("% Memory free: " + str(self.percentFreeMemory) + "\n")
         print("External Fragmentation (number of areas with free space): ", self.externalFragmentation)
+        outFile.write("External Fragmentation (number of areas with free space): " + str(self.externalFragmentation) + "\n")
         print("Largest Free Space: ", self.largestSpace)
+        outFile.write("Largest Free Space: " + str(self.largestSpace) + "\n")
         print("Smallest Free Space: ", self.smallestSpace)
+        outFile.write("Smallest Free Space: " + str(self.smallestSpace) + "\n")
         print("Number of Heap allocation: ", self.numberHeapAllocation)
+        outFile.write("Number of Heap allocation: " + str(self.numberHeapAllocation) + "\n")
         print("Number of Lost objects: ", self.numberLostObj)
+        outFile.write("Number of Lost objects: " + str(self.numberLostObj) + "\n")
         print("Total Memory Size of lost objects: ", self.totalMemorySizeLostObj)
+        outFile.write("Total Memory Size of lost objects: " + str(self.totalMemorySizeLostObj) + "\n")
         print("\n")
+        outFile.write("\n\n")
 
     def resetMetrics(self):
         self.memoryAllocated = 0
@@ -165,14 +179,17 @@ class MemoryMetrics():
 
 
 def runSimulation(testName, memoryUnitSize, memoryNumber, outputFile, logFile, lostObjects, smallJobs, mediumJobs, largeJobs):
-
-    outFile = open(outputFile, 'w')
+    
     ff = open('ff.txt', 'w')
     nf = open('nf.txt', 'w')
     bf = open('bf.txt', 'w')
     wf = open('wf.txt', 'w')
     log = open(logFile, 'a')
+    outFile = open(outputFile, 'a')
+   
+
     log.truncate(0)
+    # outFile.truncate(0)
     num_lost_objects = 0
     total_memory_lost_objects = 0
     num_operations = 0
@@ -327,17 +344,30 @@ def runSimulation(testName, memoryUnitSize, memoryNumber, outputFile, logFile, l
                 test.stackMemory = jobs[0].stack_size
                 test.heapEMemory = test.memoryAllocated - (jobs[0].code_size + jobs[0].stack_size)
                 test.stackCodeMemory = jobs[0].code_size + jobs[0].stack_size
-                test.printMetrics()
+                test.printMetrics(outFile)
+                # outFile.write(str(test.test))
+
+            
             print('\nEfficiency Metrics')
+            outFile.write("\nEfficiency Metrics\n")
             print("Total Operations", num_operations)
+            outFile.write("Total Operations" + str(num_operations) + "\n")
             print("Number of Allocations", alloc_operations )
+            outFile.write("Number of Allocations" + str(alloc_operations) + "\n")
             print("Number of Allocation Operations", alg.a_ops )
+            outFile.write("Number of Allocation Operations" + str(alg.a_ops) + "\n")
             print("Number of Free Requests", free_operations )
+            outFile.write("Number of Free Requests" + str(free_operations) + "\n")
             print("Number of Free Operations", alg.f_ops )
+            outFile.write("Number of Free Operations" + str(alg.f_ops) + "\n")
             print("Average of Allocations", alloc_operations/4 )
+            outFile.write("Average of Allocations" + str(alloc_operations/4) + "\n")
             print("Number of Free Requests", free_operations/4 )
+            outFile.write("Number of Free Requests" + str(free_operations/4) + "\n")
             print("Percent of Allocations", (alloc_operations/num_operations)*100 )
+            outFile.write("Percent of Allocations" + str((alloc_operations/num_operations)*100) + "\n")
             print("Percent of Free Requests", (free_operations/num_operations)*100)
+            outFile.write("Percent of Free Requests" + str((free_operations/num_operations)*100) + "\n")
 
         # Counter for the current running job
         jobTime -= 1
@@ -346,7 +376,7 @@ def runSimulation(testName, memoryUnitSize, memoryNumber, outputFile, logFile, l
         if jobTime == 0 and memory:
             memory.pop(0)
 
-
+    outFile.close()
     log.close()
     percent_memory_free = alg.ffHeap.__len__() / memoryUnitSize
     #UPDATE SUMMARY FILE once the full simulation is complete
@@ -458,48 +488,40 @@ def main():
     printHeap(jobLarge, outFileLarge)
     outFileLarge.close()"""
 
-    # test_name = input("Enter test name: ")
-    # print(test_name)
-    # memory_unit_size = input("Enter memory unit size: ")
-    # print(memory_unit_size)
-    # memory_number = input("Enter memory number: ")
-    # print(memory_number)
-    # output_file_name = input("Enter output file name")
-    # print(output_file_name)
-    # log_file_name = input("Enter log file name: ")
-    # print(log_file_name)
-    # want_lost_objects = input("Enter 1 if you want lost objects and 2 if you don't: ")
-    # print(want_lost_objects)
-    # if (want_lost_objects == "1"):
-    #     lost_objects = True
-    # else:
-    #     lost_objects = False
-    # print(lost_objects)
-    # small_jobs = input("Enter number of small jobs: ")
-    # medium_jobs = input("Enter number of medium jobs: ")
-    # large_jobs = input("Enter number of large jobs: ")
+    userInput = 1
+    while (userInput == 1):
+        test_name = input("Enter test name: ")
+        print(test_name)
+        memory_unit_size = input("Enter memory unit size: ")
+        print(memory_unit_size)
+        memory_number = input("Enter memory number: ")
+        print(memory_number)
+        output_file_name = input("Enter output file name")
+        print(output_file_name)
+        log_file_name = input("Enter log file name: ")
+        print(log_file_name)
+        want_lost_objects = input("Enter 1 if you want lost objects and 2 if you don't: ")
+        print(want_lost_objects)
+        if (want_lost_objects == "1"):
+            lost_objects = True
+        else:
+            lost_objects = False
+        print(lost_objects)
+        small_jobs = input("Enter number of small jobs: ")
+        medium_jobs = input("Enter number of medium jobs: ")
+        large_jobs = input("Enter number of large jobs: ")
+        runSimulation(str(test_name), int(memory_unit_size), int(memory_number), str(output_file_name), str(log_file_name), bool(lost_objects), int(small_jobs), int(medium_jobs), int(large_jobs))
+        userInput = input("Press 1 to continue or 2 to quit program: ")
 
 
-    # runSimulation(str(test_name), int(memory_unit_size), int(memory_number), str(output_file_name), str(log_file_name), bool(lost_objects), int(small_jobs), int(medium_jobs), int(large_jobs))
+    
 
 
-
-    runSimulation(testName='TestRun', memoryUnitSize=64, memoryNumber=12, outputFile='outputFile.txt', logFile='summaryLog.txt', lostObjects=False, smallJobs=50, mediumJobs=25,largeJobs=25)
-
-    ff = open('ff.txt', 'r')
-    nf = open('nf.txt', 'r')
-    bf = open('bf.txt', 'r')
-    wf = open('wf.txt', 'r')
-    print("\t\t\tFirst Fit\tNext Fit\tBest Fit\tWorst Fit")
-
-    print("1\t", "TestRun\t8\t", ff.read(), "\t", ff.read(), "\t", ff.read(), "\t", ff.read(), "\t", ff.read(), "\t", ff.read())
-
-    #runSimulation(testName='TestRun1', memoryUnitSize=10, memoryNumber=5, outputFile='outputFile1.txt', logFile='summaryLog1.txt', lostObjects=True, smallJobs=30, mediumJobs=20,largeJobs=20)
-    print("2\t", "TestRun1\t8\t", ff.read(), "\t", ff.read(), "\t", ff.read(), "\t", ff.read(), "\t", ff.read(), "\t", ff.read())
-
-
-    # memory_size = input("Please enter the memory unit size: ")
-    # memory_units = input("Please enter the number of memory units available: ")
+    # runSimulation(testName='TestRun1', memoryUnitSize=64, memoryNumber=12, outputFile='outputFile1.txt', logFile='summaryLog1.txt', lostObjects=False, smallJobs=50, mediumJobs=25,largeJobs=25)
+    # runSimulation(testName='TestRun2', memoryUnitSize=64, memoryNumber=12, outputFile='outputFile2.txt', logFile='summaryLog2.txt', lostObjects=False, smallJobs=50, mediumJobs=25,largeJobs=25)
+    # runSimulation(testName='TestRun3', memoryUnitSize=64, memoryNumber=12, outputFile='outputFile3.txt', logFile='summaryLog3.txt', lostObjects=False, smallJobs=50, mediumJobs=25,largeJobs=25)
+    # runSimulation(testName='TestRun4', memoryUnitSize=64, memoryNumber=12, outputFile='outputFile4.txt', logFile='summaryLog4.txt', lostObjects=True, smallJobs=10, mediumJobs=30,largeJobs=30)
+   
 
 
 
